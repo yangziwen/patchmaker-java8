@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Ablesky补丁生成工具</title>
+<link type="text/css" rel="stylesheet" href="/ztree/css/zTreeStyle.css" />
+<link type="text/css" rel="stylesheet" href="/css/bootstrap.min.css" />
+<style>
+.table th {
+	text-align: center;
+}
+.table thead {
+	background-color: #eee;
+}
+.modal-backdrop, .modal-backdrop.fade.in {
+	opacity: 0.5;
+	filter: alpha(opacity=50);
+}
+</style>
+
+</head>
+<body>
+<div id="J_app" style="margin: 30px auto 80px; width: 1000px;">
+	<h2 style="font-family: 微软雅黑; text-align: center;">补丁生成器</h2>
+	
+	<div id="J_folderTree" style="display:none">
+		<div style="text-align: center; font-size: 22px; margin-top: 20px;">
+			<strong style="color: #666">请选择Git工作区目录</strong>
+		</div>
+		<div id="J_fileTreeWrap" style="width: 350px; height: 350px; margin: 5px auto;  overflow-x:auto; overflow-y: auto; border: 5px solid #bbb; border-radius:10px;">
+			<ul id="J_fileTree" class="ztree" style="margin: 5px 15px;"></ul>
+		</div>
+		<div style="text-align: center;">
+			<input id="J_workspacePathTxt" style="width: 350px;" type="text" placeholder="或者直接输入git工作区路径" />
+		</div>
+		<div id="J_btnWrap" style="text-align: center;">
+			<button id="J_openFolderBtn" class="btn">打开选中目录</button>
+			&nbsp;&nbsp;
+			<button id="J_toRepoBtn" class="btn">前往Git工作区</button>
+		</div>
+	</div>
+	
+	<div id="J_manage" style="display:none;">
+		<div id="J_gitOperation">
+			<div>
+				<h4 style="font-family: 微软雅黑; display:inline-block; margin-right: 10px;">工作目录:</h4>
+				<span style="font-size: 18px;">
+					<a id="J_openFolderBtn" href="javascript:void(0);"></a>
+					<a id="J_openGitBashBtn" href="javascript:void(0);">[GitBash]</a>
+					<a id="J_openCmdWinBtn" href="javascript:void(0);" style="display:none;">[Cmd]</a>
+					<a href="#/folderTree" style="font-family: 微软雅黑">[返回目录树]</a>
+				</span>
+			</div>
+			<div style="display: inline-block; margin-right: 10px;">
+				<h4 style="font-family: 微软雅黑;">当前分支:</h4>
+			</div>
+			<select name="branch" id="J_branchSel" style="margin-top: 5px;">
+			</select>
+			<div id="J_pageBarTop" style="margin-top: 5px; display:inline-block; float: right"></div>
+		</div>
+		<div id="J_commits" style="position:relative;">
+			<!-- 下面这个div甚糙，先将就吧 -->
+			<div id="J_graphWrapper" style="left: -150px; width: 150px; position: absolute; top: 50px;"></div>
+			<table class="table table-bordered table-condensed table-hover" style="width: 1000px; table-layout: fixed">
+				<thead>
+					<tr>
+						<th style="width:30px;"><input type="checkbox" class="selectAll" /></th>
+						<th style="width:150px;">commit code</th>
+						<th style="width:90px;">author</th>
+						<th style="width:150px;">commit time</th>
+						<th>comment</th>
+					</tr>
+				</thead>
+			 	<tbody>
+			 	</tbody>
+			 	<script type="text/x-jquery-tmpl" id="J_commitTmpl">
+		 		<tr>
+		 			<td style="text-align:center;">
+		 				<input class="selectSingle" type="checkbox" value="${'${'}hashCode}"/>
+		 			</td>
+		 			<td style="text-align: center;">${'${'}hashCode.substring(0, 10)}</td>
+		 			<td style="text-align: center; white-space: nowrap; overflow: hidden" title="${'${'}author}">${'${'}author}</td>
+		 			<td style="text-align: center;">${'${'}Date.format(commitTimestamp, "yyyy-MM-dd hh:mm:ss")}</td>
+		 			<td><div title="${'${'}comment}" style="width:530px;height:20px; overflow: hidden;">${'${'}comment}</div></td>
+		 		</tr>
+		 		</script>
+			</table>
+		</div>
+		<div id="J_blobRecords">
+			<div style="text-align: center; margin-bottom: 20px;">
+				<button class="btn" id="J_queryBlobRecordBtn">查询关联文件</button>
+			</div>
+			<div style="text-align: center; margin-bottom: 20px;" class="form-inline">
+				<input id="J_sinceCommitPoint" type="text" placeholder="起始提交点"/>&nbsp;
+				<input id="J_untilCommitPoint" type="text" placeholder="变更后提交点"/>&nbsp;
+				<button class="btn" id="J_queryDiffBlobRecordBtn">查询差异文件</button>
+				<button class="btn hide" id="J_queryNumStatBtn">查询代码变更量</button>
+			</div>
+			<table  class="table table-bordered table-condensed table-hover" style="width: 1000px;">
+				<thead>
+					<tr>
+						<th style="width:30px;"><input type="checkbox" class="selectAll" /></th>
+						<th style="width:150px;">blob code</th>
+						<%-- <th style="width:350px;">commit code</th>  --%>
+						<th style="width:50px;">oper</th>
+						<th>file path</th>
+					</tr>
+				</thead>
+				<tbody>
+				</tbody>
+				<script type="text/x-jquery-tmpl" id="J_blobRecordTmpl">
+		 		<tr>
+		 			<td style="text-align:center;">
+		 				<input class="selectSingle" type="checkbox" {{if oper != 'D'}}checked="checked"{{/if}} value="${'${'}commitHashCode}"/>
+		 			</td>
+		 			<td style="text-align: center;">${'${'}hashCode.substring(0, 7)}</td>
+		 			<%-- <td style="text-align: center;">${'${'}commitHashCode? commitHashCode.substring(0, 10): ''}</td> --%>
+		 			<td style="text-align: center;">${'${'}oper}</td>
+		 			<td style="padding-left:15px;">${'${'}relativeFilePath}</td>
+		 		</tr>
+		 		</script>
+			</table>
+		</div>
+		<div id="J_patchOperation" style="margin-top: 10px;">
+			<input type="text" id="J_patchRootPathTxt" style="width: 400px; margin-top: 10px;" placeholder="请输入补丁输出路径"/>
+			<select id="J_useOptimizedSel" style="margin-top:10px; width: 160px;">
+				<option value="0" selected="selected">原始静态文件</option>
+				<option value="1">压缩后的静态文件</option>
+			</select>
+			<button class="btn" id="J_createPatchBtn">创建补丁</button>
+			<button class="btn" id="J_openPatchFolderBtn">打开本地补丁目录</button>
+			<button class="btn" id="J_openWebreleaseFolderBtn">打开W盘补丁目录</button>
+		</div>
+	</div>
+</div>
+<ul id="J_pickCommitPointMenu" style="display:none; position:absolute;" class="dropdown-menu" role="menu" aria-labelledby="dropdown">
+	<li><a id="test2" tabindex="-1" href="javascript:void(0);" data-commit-input="#J_untilCommitPoint">选中为变更后提交点</a></li>
+	<li><a id="test1" tabindex="-1" href="javascript:void(0);" data-commit-input="#J_sinceCommitPoint">选中为起始提交点</a></li>
+</ul>
+<script src="/js/require.js"></script>
+<script src="/js/jquery/jquery.js"></script>
+<script src="/js/jquery/jquery.tmpl.js"></script>
+<script src="/js/bootstrap/bootstrap.min.js"></script>
+<script src="/js/bootstrap/bootstrapPageBar.js"></script>
+<script src="/js/spine/spine.js"></script>
+<script src="/js/spine/spine.route.js"></script>
+<script src="/js/utils/dateutil.js"></script>
+<script>
+var CTX_PATH = '';
+require.config({
+	baseUrl: '/js',
+	urlArgs: 'v=20131119',
+	paths: {	
+		app: '/js/app',
+		controllers: '/js/app/controllers',
+		models: '/js/app/models',
+		viwes: '/js/app/views',
+		ztree: '/ztree/js',
+		utils: '/js/utils'
+	}
+});
+require(['app/main']);
+</script>
+</body>
+</html>
