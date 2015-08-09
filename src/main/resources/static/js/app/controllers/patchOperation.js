@@ -25,7 +25,7 @@ define(['jquery', 'utils/messagebox'], function($, MessageBox){
 				return;
 			}
 			this.workspaceDir = workspaceDir;
-			var url = CTX_PATH + '/git/getRecommendedPatchPath.do';
+			var url = CTX_PATH + '/file/getRecommendedPatchPath.do';
 			$.getJSON(url, {
 				workspaceDir: this._getWorkspaceDir()
 			}, this.proxy(function(data){

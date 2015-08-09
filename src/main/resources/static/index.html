@@ -21,7 +21,7 @@
 </head>
 <body>
 <div id="J_app" style="margin: 30px auto 80px; width: 1000px;">
-	<h2 style="font-family: 微软雅黑; text-align: center;">补丁生成器</h2>
+	<h2 style="font-family: 'Microsoft Yahei'; text-align: center;">补丁生成器</h2>
 	
 	<div id="J_folderTree" style="display:none">
 		<div style="text-align: center; font-size: 22px; margin-top: 20px;">
@@ -43,16 +43,16 @@
 	<div id="J_manage" style="display:none;">
 		<div id="J_gitOperation">
 			<div>
-				<h4 style="font-family: 微软雅黑; display:inline-block; margin-right: 10px;">工作目录:</h4>
+				<h4 style="font-family: 'Microsoft Yahei'; display:inline-block; margin-right: 10px;">工作目录:</h4>
 				<span style="font-size: 18px;">
 					<a id="J_openFolderBtn" href="javascript:void(0);"></a>
 					<a id="J_openGitBashBtn" href="javascript:void(0);">[GitBash]</a>
 					<a id="J_openCmdWinBtn" href="javascript:void(0);" style="display:none;">[Cmd]</a>
-					<a href="#/folderTree" style="font-family: 微软雅黑">[返回目录树]</a>
+					<a href="#/folderTree" style="font-family: 'Microsoft Yahei'">[返回目录树]</a>
 				</span>
 			</div>
 			<div style="display: inline-block; margin-right: 10px;">
-				<h4 style="font-family: 微软雅黑;">当前分支:</h4>
+				<h4 style="font-family: 'Microsoft Yahei';">当前分支:</h4>
 			</div>
 			<select name="branch" id="J_branchSel" style="margin-top: 5px;">
 			</select>
@@ -76,12 +76,12 @@
 			 	<script type="text/x-jquery-tmpl" id="J_commitTmpl">
 		 		<tr>
 		 			<td style="text-align:center;">
-		 				<input class="selectSingle" type="checkbox" value="${'${'}hashCode}"/>
+		 				<input class="selectSingle" type="checkbox" value="${hashCode}"/>
 		 			</td>
-		 			<td style="text-align: center;">${'${'}hashCode.substring(0, 10)}</td>
-		 			<td style="text-align: center; white-space: nowrap; overflow: hidden" title="${'${'}author}">${'${'}author}</td>
-		 			<td style="text-align: center;">${'${'}Date.format(commitTimestamp, "yyyy-MM-dd hh:mm:ss")}</td>
-		 			<td><div title="${'${'}comment}" style="width:530px;height:20px; overflow: hidden;">${'${'}comment}</div></td>
+		 			<td style="text-align: center;">${hashCode.substring(0, 10)}</td>
+		 			<td style="text-align: center; white-space: nowrap; overflow: hidden" title="${author}">${author}</td>
+		 			<td style="text-align: center;">${Date.format(commitTimestamp, "yyyy-MM-dd hh:mm:ss")}</td>
+		 			<td><div title="${comment}" style="width:530px;height:20px; overflow: hidden;">${comment}</div></td>
 		 		</tr>
 		 		</script>
 			</table>
@@ -101,7 +101,6 @@
 					<tr>
 						<th style="width:30px;"><input type="checkbox" class="selectAll" /></th>
 						<th style="width:150px;">blob code</th>
-						<%-- <th style="width:350px;">commit code</th>  --%>
 						<th style="width:50px;">oper</th>
 						<th>file path</th>
 					</tr>
@@ -111,12 +110,11 @@
 				<script type="text/x-jquery-tmpl" id="J_blobRecordTmpl">
 		 		<tr>
 		 			<td style="text-align:center;">
-		 				<input class="selectSingle" type="checkbox" {{if oper != 'D'}}checked="checked"{{/if}} value="${'${'}commitHashCode}"/>
+		 				<input class="selectSingle" type="checkbox" {{if oper != 'D'}}checked="checked"{{/if}} value="${commitHashCode}"/>
 		 			</td>
-		 			<td style="text-align: center;">${'${'}hashCode.substring(0, 7)}</td>
-		 			<%-- <td style="text-align: center;">${'${'}commitHashCode? commitHashCode.substring(0, 10): ''}</td> --%>
-		 			<td style="text-align: center;">${'${'}oper}</td>
-		 			<td style="padding-left:15px;">${'${'}relativeFilePath}</td>
+		 			<td style="text-align: center;">${hashCode.substring(0, 7)}</td>
+		 			<td style="text-align: center;">${oper}</td>
+		 			<td style="padding-left:15px;">${relativeFilePath}</td>
 		 		</tr>
 		 		</script>
 			</table>
@@ -149,7 +147,7 @@
 var CTX_PATH = '';
 require.config({
 	baseUrl: '/js',
-	urlArgs: 'v=20131119',
+	urlArgs: 'v=20150809',
 	paths: {	
 		app: '/js/app',
 		controllers: '/js/app/controllers',
