@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -22,19 +23,23 @@ public class PatchMaker {
 	public void makePatch(List<File> fileList) throws FileNotFoundException {
 		Map<File, File> fileMapping = registryChain.mappingFiles(fileList);
 		// validate source files
-		for(File srcFile: fileMapping.keySet()) {
-			if(srcFile == null || !srcFile.exists() || !srcFile.isFile()) {
-				throw new FileNotFoundException("以下源文件不存在! \n[ " + FilenameUtils.normalize(srcFile.getAbsolutePath(), true)+ " ]");
-			}
+		Optional<File> error = fileMapping.keySet().stream()
+			.filter(src -> !src.exists() || !src.isFile())
+			.findFirst();
+		if(error.isPresent()) {
+			String errorFilePath = FilenameUtils.normalize(error.get().getAbsolutePath(), true);
+			throw new FileNotFoundException(String.format("以下源文件不存在! \n[%s]", errorFilePath));
 		}
 		// create patch folder and copy files
-		fileMapping.forEach((src, dest) -> {
-			 try {
-				FileUtils.copyFile(src, dest);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		});
+		fileMapping.forEach(PatchMaker::copyFile);
+	}
+	
+	public static void copyFile(File srcFile, File destFile) {
+		try {
+			FileUtils.copyFile(srcFile, destFile);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 }

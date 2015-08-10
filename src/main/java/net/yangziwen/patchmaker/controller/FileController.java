@@ -47,7 +47,8 @@ public class FileController {
 				resultMap.put("message", "文件夹不存在或路径无效!");
 				return resultMap;
 			}
-			CmdUtil.waitForProcess(Runtime.getRuntime().exec("explorer \"" + folder.getCanonicalPath() + "\""));
+			String cmd = "explorer \"" + folder.getCanonicalPath() + "\"";
+			CmdUtil.waitForProcess(Runtime.getRuntime().exec(cmd));
 			resultMap.put("success", true);
 			return resultMap;
 		}, JSON::toJSONString);
@@ -62,7 +63,8 @@ public class FileController {
 				resultMap.put("message", "文件夹不存在或路径无效!");
 				return resultMap;
 			}
-			CmdUtil.waitForProcess(Runtime.getRuntime().exec("cmd /c start", null, folder));
+			String cmd = "cmd /c start";
+			CmdUtil.waitForProcess(Runtime.getRuntime().exec(cmd, null, folder));
 			resultMap.put("success", true);
 			return resultMap;
 		}, JSON::toJSONString);
@@ -77,7 +79,8 @@ public class FileController {
 				resultMap.put("message", "文件夹不存在或路径无效!");
 				return resultMap;
 			}
-			CmdUtil.waitForProcess(Runtime.getRuntime().exec("cmd /c start sh --login -i", null, folder));
+			String cmd = "cmd /c start sh --login -i";
+			CmdUtil.waitForProcess(Runtime.getRuntime().exec(cmd, null, folder));
 			resultMap.put("success", true);
 			return resultMap;
 		});
@@ -93,15 +96,13 @@ public class FileController {
 				return resultMap;
 			}
 			List<String> subFolderPathList = (isRootPath(folderPath) ? getRootList() : getSubFolder(folder))
-					.stream()
-					.map(file -> FilenameUtils.normalize(file.getAbsolutePath(), true))
-					.collect(Collectors.toList());
-					
-			resultMap.put("isValid", true);
+				.stream()
+				.map(file -> FilenameUtils.normalize(file.getAbsolutePath(), true))
+				.collect(Collectors.toList());
 			resultMap.put("folderPath", isRootPath(folderPath) ? ROOT_PATH : FilenameUtils.normalize(folderPath, true));
 			resultMap.put("subFolderPaths", subFolderPathList);
+			resultMap.put("isValid", true);
 			return resultMap;
-			
 		}, JSON::toJSONString);
 		
 		/** 获取子目录节点 **/
@@ -143,18 +144,21 @@ public class FileController {
 		}
 		Counter counter = Util.counter();
 		return Arrays.asList(parentFolder.listFiles()).stream()
-				.filter(File::isDirectory)
-				.filter(File::canRead)
-				.filter(file -> !file.getName().startsWith("."))
-				.filter(file -> !file.isHidden())
-				.map(file -> {
-					Map<String, Object> fileInfo = new HashMap<>();
-					fileInfo.put("id", parentNodeId + "_" + counter.getAndIncr());
-					fileInfo.put("name", file.getName());
-					fileInfo.put("isParent", file.isDirectory());
-					fileInfo.put("filePath", file.getAbsolutePath());
-					return fileInfo;
-				}).collect(Collectors.toList());
+			.filter(File::isDirectory)
+			.filter(File::canRead)
+			.filter(file -> !file.getName().startsWith("."))
+			.filter(file -> !file.isHidden())
+			.map(file -> buildFileInfo(parentNodeId + "_" + counter.getAndIncr(), file))
+			.collect(Collectors.toList());
+	}
+	
+	private static Map<String, Object> buildFileInfo(String nodeId, File file) {
+		Map<String, Object> fileInfo = new HashMap<>();
+		fileInfo.put("id", nodeId);
+		fileInfo.put("name", file.getName());
+		fileInfo.put("isParent", file.isDirectory());
+		fileInfo.put("filePath", file.getAbsolutePath());
+		return fileInfo;
 	}
 	
 	private static boolean isRootPath(String filePath) {
@@ -178,10 +182,10 @@ public class FileController {
 			return Collections.emptyList();
 		}
 		return Arrays.asList(parentFolder.listFiles()).stream()
-				.filter(File::isDirectory)
-				.filter(file -> !file.isHidden())
-				.filter(file -> !file.getName().startsWith("."))
-				.collect(Collectors.toList());
+			.filter(File::isDirectory)
+			.filter(file -> !file.isHidden())
+			.filter(file -> !file.getName().startsWith("."))
+			.collect(Collectors.toList());
 	}
 	
 	private static String getRecommendedPatchPath(File workspaceDir) { 

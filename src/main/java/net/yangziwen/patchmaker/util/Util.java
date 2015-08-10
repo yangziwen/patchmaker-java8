@@ -19,6 +19,10 @@ public class Util {
 
 	private Util() {}
 	
+	public static <T> List<T> toList(Iterable<T> iterable) {
+		return toList(iterable.iterator());
+	}
+	
 	public static <T> List<T> toList(Iterator<T> iterator) {
 		return toList(iterator, 10);
 	}
@@ -53,14 +57,14 @@ public class Util {
 	public static File checkWorkspaceDir(String workspaceDir, Map<String, Object> resultMap) throws IOException {
 		File dir = null;
 		if(StringUtils.isBlank(workspaceDir) || !(dir = new File(workspaceDir)).exists()) {
-			resultMap.put("success", false);
 			resultMap.put("message", "工作目录为空或不存在!");
+			resultMap.put("success", false);
 			return null;
 		}
 		File gitRootDir = Util.findGitRootDir(dir);
 		if(gitRootDir == null) {
-			resultMap.put("success", false);
 			resultMap.put("message", "工作目录不是有效的git目录!");
+			resultMap.put("success", false);
 			return null;
 		}
 		return gitRootDir;

@@ -1,8 +1,6 @@
 package net.yangziwen.patchmaker.model;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
+import org.eclipse.jgit.diff.DiffEntry;
 
 public class Blob extends Record implements PathRecord {
 	
@@ -18,6 +16,15 @@ public class Blob extends Record implements PathRecord {
 		this.oper = oper;
 		this.relativeFilePath = relativeFilePath;
 		this.commitHashCode = commitHashCode;
+	}
+	
+	public Blob(DiffEntry diffEntry) {
+		this(
+			diffEntry.getNewId().name(), 
+			diffEntry.getChangeType().name().substring(0, 1), 
+			generateRelativeFilePath(diffEntry), 
+			null
+		);
 	}
 	
 	private String commitHashCode;
@@ -50,27 +57,19 @@ public class Blob extends Record implements PathRecord {
 		this.oper = oper;
 	}
 	
-	public static Blob parseContentFromWhatChanged(String str) {
-		return parseContentFromWhatChanged(str, null);
-	}
-	
-	public static Blob parseContentFromWhatChanged(String str, String commitHashCode){
-		if(StringUtils.isBlank(str) || !str.startsWith(":")) {
-			return null;
+	private static String generateRelativeFilePath(DiffEntry diffEntry) {
+		switch(diffEntry.getChangeType()) {
+			case ADD: 
+			case MODIFY:
+			case COPY:
+				return diffEntry.getNewPath();
+			case DELETE:
+				return diffEntry.getOldPath();
+			case RENAME:
+				return diffEntry.getOldPath() + " > " + diffEntry.getNewPath();
+			default:
+				return "";
 		}
-		String[] contentArr = str.split("\\s");
-		if(contentArr == null || contentArr.length < 6) {
-			return null;
-		}
-		String hashCode = contentArr[3].trim();
-		int pos = hashCode.indexOf("...");
-		if(pos != -1) {
-			hashCode = hashCode.substring(0, pos);
-		}
-		String oper = contentArr[4].trim();
-		int filePathPos = str.indexOf(contentArr[5]);
-		String relativeFilePath = str.substring(filePathPos);
-		return new Blob(hashCode, oper, relativeFilePath, commitHashCode);
 	}
 	
 	@Override

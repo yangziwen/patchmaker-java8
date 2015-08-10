@@ -41,15 +41,15 @@ public class PatchController {
 				targetDir.mkdirs();
 			}
 			if(!targetDir.isDirectory()) {
-				resultMap.put("success", false);
 				resultMap.put("message", "目标文件夹已存在且不是文件目录!");
+				resultMap.put("success", false);
 				return resultMap;
 			}
 			// 检查下补丁文件
 			String[]  filePathArr = filePaths.split(",");
 			if(filePathArr == null || filePathArr.length == 0) {
-				resultMap.put("success", false);
 				resultMap.put("message", "补丁文件列表为空!");
+				resultMap.put("success", false);
 				return resultMap;
 			}
 			List<File> fileList = new ArrayList<> (filePathArr.length);
@@ -57,8 +57,8 @@ public class PatchController {
 			for(String filePath: filePathArr) {
 				file = new File(gitRootDir + "/" + filePath);
 				if(!file.exists()) {
+					resultMap.put("message", String.format("补丁文件不存在!\n[%s]", file.getAbsolutePath()));
 					resultMap.put("success", false);
-					resultMap.put("message", "补丁文件[" + file.getAbsolutePath() + "]不存在!");
 					return resultMap;
 				}
 				fileList.add(file);
@@ -77,8 +77,8 @@ public class PatchController {
 				return resultMap;
 			} catch (Exception e) {
 				e.printStackTrace();
-				resultMap.put("success", false);
 				resultMap.put("message", e.getMessage());
+				resultMap.put("success", false);
 				return resultMap;
 			}
 		}, JSON::toJSONString);

@@ -2,10 +2,12 @@ package net.yangziwen.patchmaker.model;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jgit.revwalk.RevCommit;
 
 public class Commit extends Record {
 	
@@ -20,6 +22,18 @@ public class Commit extends Record {
 	private String comment = "";
 	
 	private List<String> parents = new ArrayList<String>(2);
+	
+	public Commit() {}
+	
+	public Commit(RevCommit rc) {
+		this.author = rc.getAuthorIdent().getName();
+		this.authorDate = rc.getAuthorIdent().getWhen();
+		this.commiter = rc.getCommitterIdent().getName();
+		this.commitDate = new Date(rc.getCommitTime() * 1000L);
+		this.hashCode = rc.getId().getName();
+		this.comment = rc.getShortMessage();
+		Arrays.asList(rc.getParents()).stream().forEach(p -> addParent(p.getId().name()));
+	}
 
 	public String getAuthor() {
 		return author;
@@ -97,22 +111,6 @@ public class Commit extends Record {
 	
 	public static String getPreviousCommitPointer(String hashCode) {
 		return getPreviousCommitPointer(hashCode, 1);
-	}
-	
-	public static enum ResetType {
-		
-		MIXED("--mixed"), SOFT("--soft"), HARD("--hard"), DEFAULT("");
-		
-		private String option;
-		
-		ResetType(String option) {
-			this.option = option;
-		}
-
-		public String getOption() {
-			return option;
-		}
-		
 	}
 	
 }

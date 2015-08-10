@@ -2,7 +2,6 @@ package net.yangziwen.patchmaker.patch.registry;
 
 import java.io.File;
 import java.io.FilenameFilter;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -63,11 +62,11 @@ public class RegistryChain {
 	}
 	
 	public Map<File, File> mappingFiles(List<File> fileList){
-		int cnt = fileList.size();
 		String patchRootPath = FilenameUtils.normalize(patchRootDir.getAbsolutePath(), true);
 		if(!patchRootPath.endsWith("/")) {
 			patchRootPath += "/";
 		}
+		int cnt = fileList.size();
 		Map<File, File> fileMapping = new HashMap<>();
 		for(Registry registry: chainMap.values()) {
 			cnt -= registry.registerDestinations(fileList, patchRootPath, fileMapping);
@@ -88,7 +87,9 @@ public class RegistryChain {
 	 * 寻找并填充内部类
 	 */
 	private static void collectAndFillInnerClassFileMapping(Map<File, File> fileMapping) {
-		distributeClassFilesToParentFolderMap(fileMapping)
+		fileMapping.keySet().stream()
+			.filter(Registry.CLASS_FILTER::accept)
+			.collect(Collectors.groupingBy(file -> file.getParentFile()))
 			.entrySet().stream()
 			.filter(entry -> !CollectionUtils.isEmpty(entry.getValue()))
 			.map(entry -> collectInnerClassFilesInTheSameFolder(entry.getKey(), entry.getValue()))
@@ -107,25 +108,6 @@ public class RegistryChain {
 		File patchFile = fileMapping.get(new File(innerClassFilename.replaceFirst("\\$.+\\.class$", ".class")));
 		File parentFolder = patchFile.getParentFile();
 		innerClassFileList.forEach(inner -> fileMapping.put(inner, new File(parentFolder, inner.getName())));
-	}
-	
-	private static List<File> getOrCreateList(File key, Map<File, List<File>> map) {
-		List<File> list = map.get(key);
-		if(list == null) {
-			map.put(key, list = new ArrayList<>());
-		}
-		return list;
-	}
-	
-	/**
-	 * 按父目录对class文件进行分组
-	 */
-	private static Map<File, List<File>> distributeClassFilesToParentFolderMap(Map<File, File> fileMapping) {
-		Map<File, List<File>> classFileParentFolderMap = new HashMap<>();
-		fileMapping.keySet().stream()
-			.filter(Registry.CLASS_FILTER::accept)
-			.forEach(file -> getOrCreateList(file.getParentFile(), classFileParentFolderMap).add(file));
-		return classFileParentFolderMap;
 	}
 	
 	private static List<File> collectInnerClassFilesInTheSameFolder(File parentFolder, List<File> classFileList) {

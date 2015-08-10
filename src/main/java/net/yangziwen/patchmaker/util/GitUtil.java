@@ -3,14 +3,11 @@ package net.yangziwen.patchmaker.util;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectReader;
@@ -61,19 +58,10 @@ public class GitUtil {
 	/** 获取提交点列表 **/
 	public static List<Commit> getCommitList(int offset, int limit, File dir) {
 		try(Git git = new Git(dir)) {
-			return Util.toList(git.log().setSkip(offset).setMaxCount(limit).call().iterator())
+			return Util.toList(git.log().setSkip(offset).setMaxCount(limit).call())
 				.stream()
-				.map(rc -> {
-					Commit commit = new Commit();
-					commit.setAuthor(rc.getAuthorIdent().getName());
-					commit.setAuthorDate(rc.getAuthorIdent().getWhen());
-					commit.setCommiter(rc.getCommitterIdent().getName());
-					commit.setCommitDate(new Date(rc.getCommitTime() * 1000L ));
-					commit.setHashCode(rc.getId().getName());
-					commit.setComment(rc.getShortMessage());
-					Arrays.asList(rc.getParents()).stream().forEach(p -> commit.addParent(p.getId().name()));
-					return commit;
-				}).collect(Collectors.toList());
+				.map(Commit::new)
+				.collect(Collectors.toList());
 		} catch (Exception e) {
 			e.printStackTrace();
 			return Collections.emptyList();
@@ -83,13 +71,8 @@ public class GitUtil {
 	/** 获取提交点总数 **/
 	public static int getCommitTotalCount(File dir) {
 		try(Git git = new Git(dir)) {
-			Iterator<?> iter = git.log().call().iterator();
-			int cnt = 0;
-			while(iter.hasNext()) {
-				iter.next();
-				cnt ++;
-			}
-			return cnt;
+			return Util.toList(git.log().call())
+				.stream().mapToInt(rc -> 1).sum();
 		} catch(Exception e) {
 			e.printStackTrace();
 			return 0;
@@ -107,23 +90,32 @@ public class GitUtil {
 	}
 	
 	/** 获取任意两个提交点之间的差异 **/
-	public static List<Blob> getRawDiffListBetween(String sinceCommitHashCode, String untilCommitHashCode, File dir) {
+	public static List<Blob> getRawDiffListBetween(String sinceCommit, String untilCommit, File dir) {
 		try (Git git = new Git(dir)) {
 			Repository repo = git.getRepository();
 			return git.diff()
-				.setOldTree(prepareTreeParser(repo, sinceCommitHashCode))
-				.setNewTree(prepareTreeParser(repo, untilCommitHashCode))
+				.setOldTree(prepareTreeParser(repo, sinceCommit))
+				.setNewTree(prepareTreeParser(repo, untilCommit))
 				.call().stream()
-				.map(diffEntry -> {
-					return new Blob(
-						diffEntry.getNewId().name(), 
-						diffEntry.getChangeType().name().substring(0, 1), 
-						generateRelativeFilePath(diffEntry), 
-						null);
-				}).collect(Collectors.toList());
+				.map(Blob::new)
+				.collect(Collectors.toList());
 		} catch (Exception e) {
 			e.printStackTrace();
 			return Collections.emptyList();
+		}
+	}
+	
+	public static boolean reset(String commitPointer, File dir) {
+		return reset(commitPointer, ResetType.MIXED, dir);
+	}
+	
+	public static boolean reset(String commitPointer, ResetType resetType, File dir) {
+		try(Git git = new Git(dir)) {
+			git.reset().setRef(commitPointer).setMode(resetType).call();
+			return true;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
 		}
 	}
 	
@@ -148,12 +140,11 @@ public class GitUtil {
 		}
 	}
 	
-	private static AbstractTreeIterator prepareTreeParser(Repository repo, String hashCode) {
+	private static AbstractTreeIterator prepareTreeParser(Repository repo, String commitPointer) {
 		try {
 			RevWalk walk = new RevWalk(repo);
-			RevCommit commit = walk.parseCommit(repo.resolve(hashCode));
+			RevCommit commit = walk.parseCommit(repo.resolve(commitPointer));
 			RevTree tree = walk.parseTree(commit.getTree().getId());
-	
 			ObjectReader oldReader = repo.newObjectReader();
 			CanonicalTreeParser oldTreeParser = new CanonicalTreeParser();
 			oldTreeParser.reset(oldReader, tree.getId());
@@ -161,21 +152,6 @@ public class GitUtil {
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
-		}
-	}
-	
-	private static String generateRelativeFilePath(DiffEntry diffEntry) {
-		switch(diffEntry.getChangeType()) {
-			case ADD: 
-			case MODIFY:
-			case COPY:
-				return diffEntry.getNewPath();
-			case DELETE:
-				return diffEntry.getOldPath();
-			case RENAME:
-				return diffEntry.getOldPath() + " > " + diffEntry.getNewPath();
-			default:
-				return "";
 		}
 	}
 	
