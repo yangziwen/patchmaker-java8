@@ -28,7 +28,7 @@ public class GitController {
 	public static void init() {
 		
 		/** 获取底层gitbash的版本号 **/
-		Spark.get("/git/getVersion.do", (req, resp) -> {
+		Spark.get("/git/version", (req, resp) -> {
 			Map<String, Object> resultMap = new HashMap<>();
 			resultMap.put("version", GitUtil.getVersion());
 			resultMap.put("success", true);
@@ -36,7 +36,7 @@ public class GitController {
 		}, JSON::toJSONString);
 		
 		/** 获取分支列表 **/
-		Spark.get("/git/listBranch.do", (req, resp) -> {
+		Spark.get("/git/branch/list", (req, resp) -> {
 			Map<String, Object> resultMap = new HashMap<String, Object>();
 			File dir = Util.checkWorkspaceDir(req.queryParams("workspaceDir"), resultMap);
 			if(dir == null) return resultMap;
@@ -46,7 +46,7 @@ public class GitController {
 		}, JSON::toJSONString);
 		
 		/** 切换分支 **/
-		Spark.post("/git/changeBranch.do", (req, resp) -> {
+		Spark.post("/git/branch/change", (req, resp) -> {
 			Map<String, Object> resultMap = new HashMap<>();
 			File dir = Util.checkWorkspaceDir(req.queryParams("workspaceDir"), resultMap);
 			if(dir == null) return resultMap;
@@ -55,7 +55,7 @@ public class GitController {
 		}, JSON::toJSONString);
 		
 		/** 获取提交点列表 **/
-		Spark.get("/git/listCommitRecord.do", (req, resp) -> {
+		Spark.get("/git/commit/list", (req, resp) -> {
 			int offset = NumberUtils.toInt(req.queryParams("start"), DEFAULT_OFFSET);
 			int limit = NumberUtils.toInt(req.queryParams("limit"), DEFAULT_LIMIT);
 			Map<String, Object> resultMap = new HashMap<>();
@@ -67,7 +67,7 @@ public class GitController {
 		}, JSON::toJSONString);
 		
 		/** 获取提交点总数 **/
-		Spark.get("/git/getCommitTotalCount.do", (req, resp) -> {
+		Spark.get("/git/commit/count", (req, resp) -> {
 			Map<String, Object> resultMap = new HashMap<>();
 			File dir = Util.checkWorkspaceDir(req.queryParams("workspaceDir"), resultMap);
 			if(dir == null) return resultMap;
@@ -76,7 +76,7 @@ public class GitController {
 			return resultMap;
 		}, JSON::toJSONString);
 		
-		Spark.post("/git/listBlobRecord.do", (req, resp) -> {
+		Spark.post("/git/blob/list", (req, resp) -> {
 			Map<String, Object> resultMap = new HashMap<>();
 			File dir = Util.checkWorkspaceDir(req.queryParams("workspaceDir"), resultMap);
 			if(dir == null) return resultMap;
@@ -103,7 +103,7 @@ public class GitController {
 		}, JSON::toJSONString);
 		
 		/** 获取两次提交之间发生变化了的文件列表 **/
-		Spark.get("/git/listDiffBlobRecord.do", (req, resp) -> {
+		Spark.get("/git/blob/diffs", (req, resp) -> {
 			Map<String, Object> resultMap = new HashMap<>();
 			File dir = Util.checkWorkspaceDir(req.queryParams("workspaceDir"), resultMap);
 			if(dir == null) return resultMap;

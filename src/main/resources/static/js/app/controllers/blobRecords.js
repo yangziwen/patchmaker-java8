@@ -92,7 +92,7 @@ define(['jquery', 'utils/messagebox'], function($, MessageBox){
 				MessageBox.alertMsg('请先选中一次或多次提交!');
 				return;
 			}
-			$.post(CTX_PATH + '/git/listBlobRecord.do', {
+			$.post(CTX_PATH + '/git/blob/list', {
 				workspaceDir: this._getWorkspaceDir(),
 				commitHashCode: commitHashCodeList.join(',')
 			}, this.proxy(function(data){
@@ -110,7 +110,7 @@ define(['jquery', 'utils/messagebox'], function($, MessageBox){
 				return;
 			}
 			this.queryDiffBlobRecordBtn.attr('disabled', true);
-			$.getJSON(CTX_PATH + "/git/listDiffBlobRecord.do", {
+			$.getJSON(CTX_PATH + "/git/blob/diffs", {
 				sinceCommitHashCode: this.sinceCommitPoint.val(),
 				untilCommitHashCode: this.untilCommitPoint.val(),
 				workspaceDir: this._getWorkspaceDir()
@@ -136,7 +136,7 @@ define(['jquery', 'utils/messagebox'], function($, MessageBox){
 			for(var key in params) {
 				paramArr.push(key + '=' + encodeURIComponent(params[key]));
 			}
-			var url = CTX_PATH + '/git/listNumStat.do?' + paramArr.join('&');
+			var url = CTX_PATH + '/git/stat/list?' + paramArr.join('&');
 			window.open(url, '_blank');
 			/*this.queryNumStatBtn.attr('disabled', true);
 			$.getJSON(CTX_PATH + "/git/listNumStat.do", {

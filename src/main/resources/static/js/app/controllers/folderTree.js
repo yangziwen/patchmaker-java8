@@ -12,7 +12,7 @@ define(['jquery', 'ztree/jquery.ztree', 'utils/messagebox', 'jquery/jquery.cooki
 			var folderPath = decodeURIComponent($.cookie('lastTimeWorkspace') || '');
 			folderPath && this.workspacePathTxt.val(folderPath);
 			this.buildTree(folderPath);
-			$.getJSON(CTX_PATH + '/git/getVersion.do', function(data){
+			$.getJSON(CTX_PATH + '/git/version', function(data){
 				if(!data.version) {
 					MessageBox.alertMsg('请先正确安装git bash，并将其bin目录配置到环境变量中!');
 				}
@@ -28,7 +28,7 @@ define(['jquery', 'ztree/jquery.ztree', 'utils/messagebox', 'jquery/jquery.cooki
 				MessageBox.alertMsg('请选中目录!');
 				return;
 			}
-			var url = CTX_PATH + '/file/openFolder.do?folderPath=' + encodeURIComponent(workspacePath);
+			var url = CTX_PATH + '/file/folder/open?folderPath=' + encodeURIComponent(workspacePath);
 			$.getJSON(url, function(data){
 				if(data.success === false) {
 					MessageBox.alertMsg(data.message || '未能成功打开文件夹!');
@@ -42,7 +42,7 @@ define(['jquery', 'ztree/jquery.ztree', 'utils/messagebox', 'jquery/jquery.cooki
 				MessageBox.alertMsg('请选中目录!');
 				return;
 			}
-			var url = CTX_PATH + '/file/findGitRootDir.do';
+			var url = CTX_PATH + '/file/gitroot';
 			$.getJSON(url, {
 				workspaceDir: workspacePath
 			}, function(data){
@@ -74,7 +74,7 @@ define(['jquery', 'ztree/jquery.ztree', 'utils/messagebox', 'jquery/jquery.cooki
 			async: {
 				enable: true,
 				url: function(treeId, treeNode) {
-					var url = CTX_PATH + '/file/getFileNodes.do';
+					var url = CTX_PATH + '/file/nodes';
 					var param = {
 						nodeId: treeNode.id,
 						filePath: encodeURIComponent(treeNode.filePath)
@@ -110,7 +110,7 @@ define(['jquery', 'ztree/jquery.ztree', 'utils/messagebox', 'jquery/jquery.cooki
 			}	
 		};
 		
-		$.getJSON(CTX_PATH + '/file/getFolderInfo.do?folderPath=root', function(data){
+		$.getJSON(CTX_PATH + '/file/folder/info?folderPath=root', function(data){
 			if(!data || data.isValid !== true || !data.subFolderPaths) {
 				MessageBox.alertMsg('目录树初始化失败!');
 				return;

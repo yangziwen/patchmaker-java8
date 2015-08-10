@@ -24,7 +24,7 @@ define(['jquery', 'utils/messagebox'], function($, MessageBox){
 			this.refreshPageBar();
 		},
 		refreshBranch: function(){
-			var url = CTX_PATH + '/git/listBranch.do?workspaceDir=' + encodeURIComponent(this._getWorkspaceDir());
+			var url = CTX_PATH + '/git/branch/list?workspaceDir=' + encodeURIComponent(this._getWorkspaceDir());
 			$.getJSON(url, this.proxy(function(data){
 				if(data.success === false) {
 					return;
@@ -43,7 +43,7 @@ define(['jquery', 'utils/messagebox'], function($, MessageBox){
 			this.totalCount = 1;
 			var workspaceDir = this._getWorkspaceDir();
 			if(workspaceDir) {
-				var url = CTX_PATH + '/git/getCommitTotalCount.do';
+				var url = CTX_PATH + '/git/commit/count';
 				$.getJSON(url, {
 					workspaceDir: this._getWorkspaceDir()
 				} , this.proxy(function(data){
@@ -104,7 +104,7 @@ define(['jquery', 'utils/messagebox'], function($, MessageBox){
 		},
 		// 打开目录文件夹
 		openFolder: function(){
-			var url = CTX_PATH + '/file/openFolder.do?folderPath=' + encodeURIComponent(this._getWorkspaceDir());
+			var url = CTX_PATH + '/file/folder/open?folderPath=' + encodeURIComponent(this._getWorkspaceDir());
 			$.getJSON(url, function(data){
 				if(data.success === false) {
 					MessageBox.alertMsg(data.message || '未能成功打开文件夹!');
@@ -113,7 +113,7 @@ define(['jquery', 'utils/messagebox'], function($, MessageBox){
 		},
 		// 打开目录的Git命令行
 		openGitBash: function(){
-			var url = CTX_PATH + '/file/openGitBash.do?folderPath=' + encodeURIComponent(this._getWorkspaceDir());
+			var url = CTX_PATH + '/file/gitbash/open?folderPath=' + encodeURIComponent(this._getWorkspaceDir());
 			$.getJSON(url, function(data){
 				if(data.success === false) {
 					MessageBox.alertMsg(data.message || '未能成功打开Git命令行窗口!');
@@ -122,7 +122,7 @@ define(['jquery', 'utils/messagebox'], function($, MessageBox){
 		},
 		// 打开目录的Cmd命令行
 		openCmdWin: function(){
-			var url = CTX_PATH + '/file/openCmdWindow.do?folderPath=' + encodeURIComponent(this._getWorkspaceDir());
+			var url = CTX_PATH + '/file/cmdwin/open?folderPath=' + encodeURIComponent(this._getWorkspaceDir());
 			$.getJSON(url, function(data){
 				if(data.success === false) {
 					MessageBox.alertMsg(data.message || '未能成功打开命令窗口!');
@@ -130,7 +130,7 @@ define(['jquery', 'utils/messagebox'], function($, MessageBox){
 			});
 		},
 		changeBranch: function(){
-			var url = CTX_PATH + '/git/changeBranch.do';
+			var url = CTX_PATH + '/git/branch/change';
 			$.post(url, {
 				workspaceDir: this._getWorkspaceDir(),
 				branch: this.branchSel.val()

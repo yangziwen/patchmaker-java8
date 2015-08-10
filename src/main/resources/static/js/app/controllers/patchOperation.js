@@ -25,7 +25,7 @@ define(['jquery', 'utils/messagebox'], function($, MessageBox){
 				return;
 			}
 			this.workspaceDir = workspaceDir;
-			var url = CTX_PATH + '/file/getRecommendedPatchPath.do';
+			var url = CTX_PATH + '/file/patchpath/recommend';
 			$.getJSON(url, {
 				workspaceDir: this._getWorkspaceDir()
 			}, this.proxy(function(data){
@@ -40,7 +40,7 @@ define(['jquery', 'utils/messagebox'], function($, MessageBox){
 			if(!patchFolder) {
 				return;
 			}
-			var url = CTX_PATH + '/file/openFolder.do?folderPath=' + encodeURIComponent(patchFolder);
+			var url = CTX_PATH + '/file/folder/open?folderPath=' + encodeURIComponent(patchFolder);
 			$.getJSON(url, function(data){
 				if(data.success === false) {
 					MessageBox.alertMsg(data.message || '未能成功打开文件夹!');
@@ -49,7 +49,7 @@ define(['jquery', 'utils/messagebox'], function($, MessageBox){
 		},
 		openWebreleaseFolder: function(){
 			var folderPath = 'W:/public/WebDev/Web release';
-			$.getJSON(CTX_PATH + '/file/openFolder.do?folderPath=' + encodeURIComponent(folderPath), function(data){
+			$.getJSON(CTX_PATH + '/file/folder/open?folderPath=' + encodeURIComponent(folderPath), function(data){
 				if(data.success === false) {
 					MessageBox.alertMsg(data.message || '未能成功打开文件夹!');
 				}
@@ -74,7 +74,7 @@ define(['jquery', 'utils/messagebox'], function($, MessageBox){
 				MessageBox.alertMsg('补丁输出路径有误!');
 				return;
 			}
-			$.post(CTX_PATH + '/patch/createPatch.do', {
+			$.post(CTX_PATH + '/patch/patch/create', {
 				filePaths: srcFiles.join(','),
 				patchDir: this.patchRootPathTxt.val(),
 				gitRootDir: this._getWorkspaceDir(),

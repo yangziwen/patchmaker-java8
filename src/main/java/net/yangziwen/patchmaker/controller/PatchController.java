@@ -27,7 +27,7 @@ public class PatchController {
 	
 	public static void init() {
 		
-		Spark.post("/patch/createPatch.do", (req, resp) -> {
+		Spark.post("/patch/patch/create", (req, resp) -> {
 			resp.type("application/json");
 			String gitRootDir = req.queryParams("gitRootDir");
 			String patchDir = req.queryParams("patchDir").trim();

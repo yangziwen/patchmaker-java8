@@ -53,7 +53,7 @@ define(['jquery'], function($){
 			if(!workspaceDir) {
 				return;
 			}
-			$.getJSON(CTX_PATH + '/git/listCommitRecord.do', {
+			$.getJSON(CTX_PATH + '/git/commit/list', {
 				workspaceDir: workspaceDir,
 				start: start,
 				limit: limit

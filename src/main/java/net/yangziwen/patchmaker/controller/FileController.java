@@ -38,7 +38,7 @@ public class FileController {
 	public static void init() {
 		
 		/** 打开指定目录的浏览窗口 **/
-		Spark.get("/file/openFolder.do", (req, resp) -> {
+		Spark.get("/file/folder/open", (req, resp) -> {
 			String folderPath = req.queryParams("folderPath");
 			Map<String, Object> resultMap = new HashMap<>();
 			File folder = null;
@@ -53,7 +53,7 @@ public class FileController {
 		}, JSON::toJSONString);
 		
 		/** 用windows命令行打开指定目录 **/
-		Spark.get("/file/openCmdWindow.do", (req, resp) -> {
+		Spark.get("/file/cmdwin/open", (req, resp) -> {
 			String folderPath = req.queryParams("folderPath");
 			Map<String, Object> resultMap = new HashMap<>();
 			File folder = null;
@@ -68,7 +68,7 @@ public class FileController {
 		}, JSON::toJSONString);
 		
 		/** 用gitbash打开指定目录 **/
-		Spark.get("/file/openGitBash.do", (req, resp) -> {
+		Spark.get("/file/gitbash/open", (req, resp) -> {
 			String folderPath = req.queryParams("folderPath");
 			Map<String, Object> resultMap = new HashMap<>();
 			File folder = null;
@@ -83,7 +83,7 @@ public class FileController {
 		});
 		
 		/** 获取目录信息 **/
-		Spark.get("/file/getFolderInfo.do", (req, resp) -> {
+		Spark.get("/file/folder/info", (req, resp) -> {
 			String folderPath = req.queryParams("folderPath");
 			Map<String, Object> resultMap = new HashMap<>();
 			
@@ -105,14 +105,14 @@ public class FileController {
 		}, JSON::toJSONString);
 		
 		/** 获取子目录节点 **/
-		Spark.post("/file/getFileNodes.do", (req, resp) -> {
+		Spark.post("/file/nodes", (req, resp) -> {
 			String nodeId = req.queryParams("nodeId");
 			String filePath = req.queryParams("filePath");
 			return getFileNodeList(nodeId, filePath);
 		}, JSON::toJSONString);
 		
 		/** 验证指定的工作空间是否为有效的git目录 **/
-		Spark.get("/file/findGitRootDir.do", (req, resp) -> {
+		Spark.get("/file/gitroot", (req, resp) -> {
 			Map<String, Object> resultMap = new HashMap<String, Object>();
 			File dir = Util.checkWorkspaceDir(req.queryParams("workspaceDir"), resultMap);
 			if(dir == null) return resultMap;
@@ -122,7 +122,7 @@ public class FileController {
 		}, JSON::toJSONString);
 		
 		/** 获取推荐的补丁路径 **/
-		Spark.get("/file/getRecommendedPatchPath.do", (req, resp) -> {
+		Spark.get("/file/patchpath/recommend", (req, resp) -> {
 			Map<String, Object> resultMap = new HashMap<>();
 			File dir = Util.checkWorkspaceDir(req.queryParams("workspaceDir"), resultMap);
 			if(dir == null) return resultMap;
