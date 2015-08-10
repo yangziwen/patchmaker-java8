@@ -39,8 +39,8 @@ public class GitUtil {
 		try(Git git = new Git(dir)) {
 			ObjectId headId = git.getRepository().resolve(Constants.HEAD).toObjectId();
 			return git.branchList().call().stream()
-					.map(ref -> new Branch(ref.getName(), ref.getObjectId().equals(headId)))
-					.collect(Collectors.toList());
+				.map(ref -> new Branch(ref.getName(), ref.getObjectId().equals(headId)))
+				.collect(Collectors.toList());
 		} catch (Exception e) {
 			e.printStackTrace();
 			return Collections.emptyList();
@@ -160,8 +160,8 @@ public class GitUtil {
 			return oldTreeParser;
 		} catch (Exception e) {
 			e.printStackTrace();
+			return null;
 		}
-		return null;
 	}
 	
 	private static String generateRelativeFilePath(DiffEntry diffEntry) {

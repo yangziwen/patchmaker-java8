@@ -17,16 +17,10 @@ public abstract class AbstractRegistry implements Registry {
 	
 	@Override
 	public int registerDestinations(List<File> fileList, String patchRootPath, Map<File, File> fileMapping) {
-		int cnt = 0;
-		for(File src: fileList) {
-			if(!fileFilter.accept(src)) {
-				continue;
-			}
-			if(fillFileMapping(FilenameUtils.normalize(src.getAbsolutePath(), true), patchRootPath, fileMapping)){
-				cnt ++;
-			}
-		}
-		return cnt;
+		return fileList.stream()
+			.filter(fileFilter::accept)
+			.filter(src -> fillFileMapping(FilenameUtils.normalize(src.getAbsolutePath(), true), patchRootPath, fileMapping))
+			.mapToInt(f -> 1).sum();
 	}
 	
 	protected abstract boolean fillFileMapping(String srcPath, String patchRootPath, Map<File, File> fileMapping);

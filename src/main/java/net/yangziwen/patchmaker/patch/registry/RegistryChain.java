@@ -8,16 +8,18 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.PrefixFileFilter;
+
+import spark.utils.CollectionUtils;
 
 public class RegistryChain {
 	
 	private File patchRootDir;
 	
-	private Map<String, Registry> chainMap = new LinkedHashMap<String, Registry>();
+	private Map<String, Registry> chainMap = new LinkedHashMap<>();
 	
 	public RegistryChain(File patchRootDir){
 		if(patchRootDir == null) {
@@ -67,7 +69,6 @@ public class RegistryChain {
 			patchRootPath += "/";
 		}
 		Map<File, File> fileMapping = new HashMap<>();
-		// 这里本应该写成责任链的，现在有点不伦不类，但也没力气改了
 		for(Registry registry: chainMap.values()) {
 			cnt -= registry.registerDestinations(fileList, patchRootPath, fileMapping);
 			if(cnt <= 0) {
@@ -86,67 +87,51 @@ public class RegistryChain {
 	/**
 	 * 寻找并填充内部类
 	 */
-	private void collectAndFillInnerClassFileMapping(Map<File, File> fileMapping) {
-		Map<File, List<File>> classFileParentFolderMap = distributeClassFilesToParentFolderMap(fileMapping);
-		for(Entry<File, List<File>> entry: classFileParentFolderMap.entrySet()) {
-			File parentFolder = entry.getKey();
-			List<File> classFileList = entry.getValue();
-			if(classFileList == null || classFileList.size() == 0) {
-				continue;
-			}
-			fillInnerClassFileMapping(fileMapping, collectInnerClassFilesInTheSameFolder(parentFolder, classFileList));
-		}
+	private static void collectAndFillInnerClassFileMapping(Map<File, File> fileMapping) {
+		distributeClassFilesToParentFolderMap(fileMapping)
+			.entrySet().stream()
+			.filter(entry -> !CollectionUtils.isEmpty(entry.getValue()))
+			.map(entry -> collectInnerClassFilesInTheSameFolder(entry.getKey(), entry.getValue()))
+			.forEach(classFileList -> fillInnerClassFileMapping(fileMapping, classFileList));
 	}
 	
 	/**
 	 * 向补丁路径填充内部类
 	 */
-	private void fillInnerClassFileMapping(Map<File, File> fileMapping, List<File> innerClassFileList) {
-		if(innerClassFileList == null || innerClassFileList.size() == 0) {
+	private static void fillInnerClassFileMapping(Map<File, File> fileMapping, List<File> innerClassFileList) {
+		if(CollectionUtils.isEmpty(innerClassFileList)) {
 			return;
 		}
 		// 下面这段仅仅是为了找出补丁文件夹的路径
-		File innerClassFile = innerClassFileList.get(0);
-		String innerClassFilename = FilenameUtils.normalize(innerClassFile.getAbsolutePath());
-		int $pos = innerClassFilename.indexOf("$");
-		if($pos == -1) {
-			return;
+		String innerClassFilename = FilenameUtils.normalize(innerClassFileList.get(0).getAbsolutePath());
+		File patchFile = fileMapping.get(new File(innerClassFilename.replaceFirst("\\$.+\\.class$", ".class")));
+		File parentFolder = patchFile.getParentFile();
+		innerClassFileList.forEach(inner -> fileMapping.put(inner, new File(parentFolder, inner.getName())));
+	}
+	
+	private static List<File> getOrCreateList(File key, Map<File, List<File>> map) {
+		List<File> list = map.get(key);
+		if(list == null) {
+			map.put(key, list = new ArrayList<>());
 		}
-		File patchFile = fileMapping.get(new File(innerClassFilename.substring(0, $pos) + ".class"));
-		if(patchFile == null) {
-			return;
-		}
-		String patchFileParentFolderPath = patchFile.getParent();
-		for(File inner: innerClassFileList) {
-			fileMapping.put(inner, new File(patchFileParentFolderPath + "/" + inner.getName()));
-		}
+		return list;
 	}
 	
 	/**
 	 * 按父目录对class文件进行分组
 	 */
-	private Map<File, List<File>> distributeClassFilesToParentFolderMap(Map<File, File> fileMapping) {
+	private static Map<File, List<File>> distributeClassFilesToParentFolderMap(Map<File, File> fileMapping) {
 		Map<File, List<File>> classFileParentFolderMap = new HashMap<>();
-		for(File file: fileMapping.keySet()) {
-			if(!Registry.CLASS_FILTER.accept(file)) {
-				continue;
-			}
-			File classParentFolder = file.getParentFile();
-			List<File> fileList = classFileParentFolderMap.get(classParentFolder);
-			if(fileList == null) {
-				fileList = new ArrayList<>();
-				classFileParentFolderMap.put(classParentFolder, fileList);
-			}
-			fileList.add(file);
-		}
+		fileMapping.keySet().stream()
+			.filter(Registry.CLASS_FILTER::accept)
+			.forEach(file -> getOrCreateList(file.getParentFile(), classFileParentFolderMap).add(file));
 		return classFileParentFolderMap;
 	}
 	
-	private List<File> collectInnerClassFilesInTheSameFolder(File parentFolder, List<File> classFileList) {
-		List<String> prefixList = new ArrayList<>(classFileList.size());
-		for(File classFile: classFileList) {
-			prefixList.add(classFile.getName().replace(".class", "$"));
-		}
+	private static List<File> collectInnerClassFilesInTheSameFolder(File parentFolder, List<File> classFileList) {
+		List<String> prefixList = classFileList.stream()
+			.map(classFile -> classFile.getName().replace(".class", "$"))
+			.collect(Collectors.toList());
 		FilenameFilter innerClassPrefixFilter = new PrefixFileFilter(prefixList);
 		return Arrays.asList(parentFolder.listFiles(innerClassPrefixFilter));
 	}

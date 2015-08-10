@@ -19,11 +19,18 @@ public class PatchMakerServer {
 		
 		Spark.staticFileLocation("/static");
 		
+		initControllers();
+		
+	}
+	
+	private static void initControllers() {
+		
 		FileController.init();
 		
 		GitController.init();
 		
 		PatchController.init();
+		
 	}
 	
 }

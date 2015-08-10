@@ -2,10 +2,8 @@ package net.yangziwen.patchmaker.patch;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -30,13 +28,13 @@ public class PatchMaker {
 			}
 		}
 		// create patch folder and copy files
-		for(Entry<File, File> entry: fileMapping.entrySet()) {
-			try {
-				FileUtils.copyFile(entry.getKey(), entry.getValue(), true);
-			} catch (IOException e) {
+		fileMapping.forEach((src, dest) -> {
+			 try {
+				FileUtils.copyFile(src, dest);
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		}
+		});
 	}
 
 }

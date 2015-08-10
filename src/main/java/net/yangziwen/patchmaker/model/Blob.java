@@ -74,11 +74,6 @@ public class Blob extends Record implements PathRecord {
 	}
 	
 	@Override
-	public String toString(){
-		return ToStringBuilder.reflectionToString(this, ToStringStyle.MULTI_LINE_STYLE);
-	}
-	
-	@Override
 	public boolean equals(Object obj) {
 		if(this == obj) {
 			return true;

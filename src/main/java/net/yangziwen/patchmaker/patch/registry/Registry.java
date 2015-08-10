@@ -24,9 +24,7 @@ public interface Registry {
 	public static final FileFilter CONF_FILTER = new SuffixFileFilter(".conf");
 	public static final FileFilter PROPERTIES_FILTER = new SuffixFileFilter(".properties");
 	public static final FileFilter MESSAGE_PROPERTIES_FILTER = new AndFileFilter(new PrefixFileFilter("messages"), (IOFileFilter)PROPERTIES_FILTER);
-	public static final FileFilter IMAGE_FILTER = new SuffixFileFilter(new String[]{
-		".png", ".gif", ".ico", ".jpg", ".jpeg", ".psd"
-	});
+	public static final FileFilter IMAGE_FILTER = new SuffixFileFilter(new String[]{".png", ".gif", ".ico", ".jpg", ".jpeg", ".psd"});
 	public static final FileFilter HBM_XML_FILTER = new SuffixFileFilter(".hbm.xml");
 	public static final FileFilter WEB_INF_XML_FILTER = file -> file != null && Registry.XML_FILTER.accept(file) && file.getAbsolutePath().contains("WEB-INF");
 
