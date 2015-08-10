@@ -1,12 +1,17 @@
 package net.yangziwen.patchmaker.util;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.IOCase;
+import org.apache.commons.io.filefilter.NameFileFilter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -59,6 +64,32 @@ public class Util {
 			return null;
 		}
 		return gitRootDir;
+	}
+	
+	public static boolean isMavenProject(File rootDir){
+		return getPomFromProject(rootDir) != null;
+	}
+	
+	public static File getPomFromProject(File rootDir) {
+		FileFilter filter = new NameFileFilter("pom.xml", IOCase.INSENSITIVE);
+		List<File> list = findFile(rootDir, filter, 2);
+		return list.size() > 0? list.get(0): null;
+	}
+	
+	public static List<File> findFile(File dir, FileFilter fileFilter, int depth) {
+		if(depth <= 0 || dir == null || !dir.isDirectory() || fileFilter == null) {
+			return Collections.emptyList();
+		}
+		List<File> fileList = new LinkedList<>();
+		for(File file: dir.listFiles()) {
+			if(fileFilter.accept(file)) {
+				fileList.add(file);
+			}
+			if(file.isDirectory()) {
+				fileList.addAll(findFile(file, fileFilter, depth - 1));
+			}
+		}
+		return fileList;
 	}
 	
 	public static Counter counter() {

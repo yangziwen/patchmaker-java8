@@ -22,6 +22,8 @@ public class GitController {
 	
 	private static final int DEFAULT_OFFSET = 0;
 	private static final int DEFAULT_LIMIT = 40;
+	
+	private GitController() {}
 
 	public static void init() {
 		
@@ -44,7 +46,7 @@ public class GitController {
 		}, JSON::toJSONString);
 		
 		/** 切换分支 **/
-		Spark.get("/git/changeBranch.do", (req, resp) -> {
+		Spark.post("/git/changeBranch.do", (req, resp) -> {
 			Map<String, Object> resultMap = new HashMap<>();
 			File dir = Util.checkWorkspaceDir(req.queryParams("workspaceDir"), resultMap);
 			if(dir == null) return resultMap;

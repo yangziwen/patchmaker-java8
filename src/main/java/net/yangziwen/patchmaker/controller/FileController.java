@@ -15,6 +15,7 @@ import org.apache.commons.lang3.time.DateFormatUtils;
 
 import com.alibaba.fastjson.JSON;
 
+import net.yangziwen.patchmaker.util.CmdUtil;
 import net.yangziwen.patchmaker.util.GitUtil;
 import net.yangziwen.patchmaker.util.Util;
 import net.yangziwen.patchmaker.util.Util.Counter;
@@ -26,6 +27,8 @@ public class FileController {
 	
 	private static final String PATCH_FOLDER_PATH = "c:/my_patches/";
 	
+	private FileController() {}
+	
 	@SuppressWarnings("serial")
 	private static final Map<String, String> PROJECT_NAME_MAPPING = new HashMap<String, String>(){{
 		put("ajaxablesky", "website");
@@ -33,6 +36,51 @@ public class FileController {
 	}};
 
 	public static void init() {
+		
+		/** 打开指定目录的浏览窗口 **/
+		Spark.get("/file/openFolder.do", (req, resp) -> {
+			String folderPath = req.queryParams("folderPath");
+			Map<String, Object> resultMap = new HashMap<>();
+			File folder = null;
+			if(StringUtils.isBlank(folderPath) || !(folder = new File(folderPath.trim())).isDirectory()) {
+				resultMap.put("success", false);
+				resultMap.put("message", "文件夹不存在或路径无效!");
+				return resultMap;
+			}
+			CmdUtil.waitForProcess(Runtime.getRuntime().exec("explorer \"" + folder.getCanonicalPath() + "\""));
+			resultMap.put("success", true);
+			return resultMap;
+		}, JSON::toJSONString);
+		
+		/** 用windows命令行打开指定目录 **/
+		Spark.get("/file/openCmdWindow.do", (req, resp) -> {
+			String folderPath = req.queryParams("folderPath");
+			Map<String, Object> resultMap = new HashMap<>();
+			File folder = null;
+			if(StringUtils.isBlank(folderPath) || !(folder = new File(folderPath.trim())).isDirectory()) {
+				resultMap.put("success", false);
+				resultMap.put("message", "文件夹不存在或路径无效!");
+				return resultMap;
+			}
+			CmdUtil.waitForProcess(Runtime.getRuntime().exec("cmd /c start", null, folder));
+			resultMap.put("success", true);
+			return resultMap;
+		}, JSON::toJSONString);
+		
+		/** 用gitbash打开指定目录 **/
+		Spark.get("/file/openGitBash.do", (req, resp) -> {
+			String folderPath = req.queryParams("folderPath");
+			Map<String, Object> resultMap = new HashMap<>();
+			File folder = null;
+			if(StringUtils.isBlank(folderPath) || !(folder = new File(folderPath.trim())).isDirectory()) {
+				resultMap.put("success", false);
+				resultMap.put("message", "文件夹不存在或路径无效!");
+				return resultMap;
+			}
+			CmdUtil.waitForProcess(Runtime.getRuntime().exec("cmd /c start sh --login -i", null, folder));
+			resultMap.put("success", true);
+			return resultMap;
+		});
 		
 		/** 获取目录信息 **/
 		Spark.get("/file/getFolderInfo.do", (req, resp) -> {
@@ -67,6 +115,7 @@ public class FileController {
 		Spark.get("/file/findGitRootDir.do", (req, resp) -> {
 			Map<String, Object> resultMap = new HashMap<String, Object>();
 			File dir = Util.checkWorkspaceDir(req.queryParams("workspaceDir"), resultMap);
+			if(dir == null) return resultMap;
 			resultMap.put("gitRootDir", dir.getCanonicalPath());
 			resultMap.put("success", true);
 			return resultMap;
@@ -76,6 +125,7 @@ public class FileController {
 		Spark.get("/file/getRecommendedPatchPath.do", (req, resp) -> {
 			Map<String, Object> resultMap = new HashMap<>();
 			File dir = Util.checkWorkspaceDir(req.queryParams("workspaceDir"), resultMap);
+			if(dir == null) return resultMap;
 			resultMap.put("recommendedPatchPath", getRecommendedPatchPath(dir));
 			resultMap.put("success", true);
 			return resultMap;
